@@ -72,7 +72,7 @@ tuple<vector<vector<int>>,
     shuffle(begin(input_y), end(input_y), default_random_engine(seed));
 
     int lenght_X = input_X.size();
-    int training_end = (int) (1 - f_testing) * lenght_X;
+    int training_end = (int) ((1 - f_testing) * lenght_X);
 
     vector<vector<int>>::const_iterator first = input_X.begin();
     vector<vector<int>>::const_iterator mid = input_X.begin() + training_end;
@@ -112,12 +112,52 @@ tuple< vector<vector<int>>, vector<string>> loadData(string XFile, string yFile)
     return make_tuple(X,y);
 }
 
+int experiment(vector<vector<int>> X,
+               vector<string>y,
+               int numBitsAddr,
+               float confidenceThreshold,
+               int numberOfRounds)
+{
+    // parameters:
+    // WiSARD(int numBitsAddr,
+	// 	      bool useBleaching=true,
+    //        float confidenceThreshold=0.1,
+    //        int defaultBleaching_b=1,
+    //        bool randomizePositions=true,
+    //        bool isCummulative=true,
+    //        bool ignoreZeroAddr=false,
+    //        int onlineMax = 2);
+
+    vector<vector<int>> X_train;
+    vector<string> y_train;
+    vector<vector<int>> X_test;
+    vector<string> y_test;
+
+    for(int i = 0; i < numberOfRounds; i++)
+    {
+        //única diferença entre os dois modelos precisa ser o ignoreZeroAddr
+        WiSARD * w1 = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, false, 10);
+        WiSARD * w2 = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, true, 10);
+
+        tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.3);
+        cout << X_train.size() << ";" << y_train.size() << ";";
+        cout << X_test.size() << ";" << y_test.size() << endl;
+
+        
+
+        free(w1);
+        free(w2);
+    }
+    return 0;
+}
+
+
 int main()
 {
-    // string XFile = "../data/imdb_cpp_X.csv";
-    // string yFile = "../data/imdb_cpp_y.csv";
+    string XFile = "data/imdb_cpp_X.csv";
+    string yFile = "data/imdb_cpp_y.csv";
     vector<vector<int>> X;
     vector<string> y;
-    // tie(X, y) = loadData(XFile, yFile);
-
+    tie(X, y) = loadData(XFile, yFile);
+    experiment(X, y, 2, 0.1, 50);
 }

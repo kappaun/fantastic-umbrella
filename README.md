@@ -1,0 +1,2 @@
+## Rodando o experimento:
+    make

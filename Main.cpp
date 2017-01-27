@@ -11,9 +11,25 @@
 #include <random>
 #include <chrono>
 #include <map>
+#include <assert.h>
 
 using namespace wann;
 using namespace std;
+
+double accuracyScore(vector<string> y, vector<string> ypred)
+{
+
+    assert(y.size() == ypred.size());
+    double count = 0.0;
+    for(int i = 0; i < y.size(); i++)
+    {
+        if(y[i] == ypred[i])
+        {
+            count = count + 1;
+        }
+    }
+    return count/y.size();
+}
 
 double deviation(vector<float> v, float ave)
 {
@@ -116,7 +132,8 @@ int experiment(vector<vector<int>> X,
                vector<string>y,
                int numBitsAddr,
                float confidenceThreshold,
-               int numberOfRounds)
+               int numberOfRounds,
+               ofstream &output)
 {
     // parameters:
     // WiSARD(int numBitsAddr,
@@ -133,6 +150,12 @@ int experiment(vector<vector<int>> X,
     vector<vector<int>> X_test;
     vector<string> y_test;
 
+    vector<string> y_pred_1;
+    vector<string> y_pred_2;
+
+    double accuracy1;
+    double accuracy2;
+
     for(int i = 0; i < numberOfRounds; i++)
     {
         //única diferença entre os dois modelos precisa ser o ignoreZeroAddr
@@ -140,24 +163,62 @@ int experiment(vector<vector<int>> X,
         WiSARD * w2 = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, true, 10);
 
         tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.3);
-        cout << X_train.size() << ";" << y_train.size() << ";";
-        cout << X_test.size() << ";" << y_test.size() << endl;
+        // cout << X_train.size() << ";" << y_train.size() << ";";
+        // cout << X_test.size() << ";" << y_test.size() << endl;
 
-        
+        w1->fit(X_train, y_train);
+        w2->fit(X_train, y_train);
+
+        y_pred_1 = w1->predict(X_test);
+        y_pred_2 = w2->predict(X_test);
+
+        accuracy1 = accuracyScore(y_test, y_pred_1);
+        accuracy2 = accuracyScore(y_test, y_pred_2);
+
+        output << numBitsAddr << ";" << confidenceThreshold << ";";
+        output << accuracy1 << ";" << accuracy2 << endl;
 
         free(w1);
         free(w2);
     }
+
+
     return 0;
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
-    string XFile = "data/imdb_cpp_X.csv";
-    string yFile = "data/imdb_cpp_y.csv";
+    /*Argumentos de entrada da main devem ser:
+        >> arquivo de entrada X
+        >> arquivo de entrada y
+        >> arquivo de saida (ainda preciso decidir o formato)
+    */
+    std::cout << argv[1] << '\n';
+    std::cout << argv[2] << '\n';
+    std::cout << argv[3] << '\n';
+
+
+    ofstream output;
+    output.open(argv[3]);
+
+    string XFile = argv[1];
+    string yFile = argv[2];
+
     vector<vector<int>> X;
     vector<string> y;
+
     tie(X, y) = loadData(XFile, yFile);
-    experiment(X, y, 2, 0.1, 50);
+
+    for(int numBits = 2; numBits <= 32; numBits = numBits * 2)
+    {
+        for(double confidence = 0.1; confidence <= 0.9; confidence = confidence + 0.1)
+        {
+            std::cout << "round :: " << numBits << ";" << confidence << '\n';
+            experiment(X, y, numBits, confidence, 30, output);
+        }
+    }
+
+    return 0;
+
 }

@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <iostream>
 #include <wann/WiSARD.hpp>
 #include <algorithm>
@@ -128,13 +129,18 @@ tuple< vector<vector<int>>, vector<string>> loadData(string XFile, string yFile)
     return make_tuple(X,y);
 }
 
-int experiment(vector<vector<int>> X,
-               vector<string>y,
-               int numBitsAddr,
-               float confidenceThreshold,
-               int numberOfRounds,
-               ofstream &output)
+int experiment( vector<vector<int>> X,
+                vector<string> y,
+                int numBitsAddr,
+                float confidenceThreshold,
+                int numberOfRounds,
+                ofstream &output)
 {
+
+
+               
+
+
     // parameters:
     // WiSARD(int numBitsAddr,
 	// 	      bool useBleaching=true,
@@ -175,7 +181,7 @@ int experiment(vector<vector<int>> X,
         accuracy1 = accuracyScore(y_test, y_pred_1);
         accuracy2 = accuracyScore(y_test, y_pred_2);
 
-        output << numBitsAddr << ";" << confidenceThreshold << ";";
+        output << numBitsAddr << ";" << 0.1 << ";";
         output << accuracy1 << ";" << accuracy2 << endl;
 
         free(w1);
@@ -186,9 +192,9 @@ int experiment(vector<vector<int>> X,
     return 0;
 }
 
-
 int main(int argc, char** argv)
 {
+
     /*Argumentos de entrada da main devem ser:
         >> arquivo de entrada X
         >> arquivo de entrada y
@@ -197,7 +203,6 @@ int main(int argc, char** argv)
     std::cout << argv[1] << '\n';
     std::cout << argv[2] << '\n';
     std::cout << argv[3] << '\n';
-
 
     ofstream output;
     output.open(argv[3]);
@@ -210,13 +215,12 @@ int main(int argc, char** argv)
 
     tie(X, y) = loadData(XFile, yFile);
 
-    for(int numBits = 2; numBits <= 32; numBits = numBits * 2)
+
+
+    for(int numBits = 2; numBits <= 32; numBits = numBits + 1)
     {
-        for(double confidence = 0.1; confidence <= 0.9; confidence = confidence + 0.1)
-        {
-            std::cout << "round :: " << numBits << ";" << confidence << '\n';
-            experiment(X, y, numBits, confidence, 30, output);
-        }
+        std::cout << "round :: " << numBits << '\n';
+        experiment(X, y, numBits, 0.1, 30, output);
     }
 
     return 0;

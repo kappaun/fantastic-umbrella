@@ -129,17 +129,23 @@ tuple< vector<vector<int>>, vector<string>> loadData(string XFile, string yFile)
     return make_tuple(X,y);
 }
 
-int experiment( vector<vector<int>> X,
+extern "C" double experiment( vector<vector<int>> X,
                 vector<string> y,
                 int numBitsAddr,
                 float confidenceThreshold,
-                int numberOfRounds,
-                ofstream &output)
+                int numberOfRounds)
 {
-
-
-               
-
+    
+    cout << "aqui 1" << endl;
+    cout << X.size() << endl;
+    for(int i = 0; i<X.size(); i++)
+    {
+    	for(int j =0; j < X[i].size(); j++)
+    	{
+    		cout << X[i][j] << " ";
+    	}
+    	cout << endl;
+    }
 
     // parameters:
     // WiSARD(int numBitsAddr,
@@ -157,39 +163,31 @@ int experiment( vector<vector<int>> X,
     vector<string> y_test;
 
     vector<string> y_pred_1;
-    vector<string> y_pred_2;
+    // vector<string> y_pred_2;
 
     double accuracy1;
-    double accuracy2;
-
+    std::vector<double> accs;
+    // double accuracy2;
+    
     for(int i = 0; i < numberOfRounds; i++)
     {
-        //única diferença entre os dois modelos precisa ser o ignoreZeroAddr
-        WiSARD * w1 = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, false, 10);
-        WiSARD * w2 = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, true, 10);
+    	// cout << "iter: " << i << endl;
+        WiSARD * w1 = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, true, 10);
+		
+        // tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.3);
+        w1->fit(X, y);
+        // cout << "teste2" <<endl;
+        y_pred_1 = w1->predict(X);
 
-        tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.3);
-        // cout << X_train.size() << ";" << y_train.size() << ";";
-        // cout << X_test.size() << ";" << y_test.size() << endl;
-
-        w1->fit(X_train, y_train);
-        w2->fit(X_train, y_train);
-
-        y_pred_1 = w1->predict(X_test);
-        y_pred_2 = w2->predict(X_test);
-
-        accuracy1 = accuracyScore(y_test, y_pred_1);
-        accuracy2 = accuracyScore(y_test, y_pred_2);
-
-        output << numBitsAddr << ";" << 0.1 << ";";
-        output << accuracy1 << ";" << accuracy2 << endl;
+        accuracy1 = accuracyScore(y, y_pred_1);
+        // // cout << accuracy1 << endl;
+        // accs.push_back(accuracy1);
 
         free(w1);
-        free(w2);
     }
 
-
-    return 0;
+    // double accuracy = accumulate(accs.begin(), accs.end(), 0.0)/accs.size();
+    return accuracy1;
 }
 
 int main(int argc, char** argv)
@@ -202,26 +200,35 @@ int main(int argc, char** argv)
     */
     std::cout << argv[1] << '\n';
     std::cout << argv[2] << '\n';
-    std::cout << argv[3] << '\n';
+    std::cout << "confidence: " << argv[3] << '\n';
+    std::cout << "number of bits:" << argv[4] << '\n';
 
     ofstream output;
-    output.open(argv[3]);
+    // output.open(argv[3]);
 
     string XFile = argv[1];
     string yFile = argv[2];
+
+    float confidenceThreshold = stof(argv[3]);
+    int numBits = stoi(argv[4]);
 
     vector<vector<int>> X;
     vector<string> y;
 
     tie(X, y) = loadData(XFile, yFile);
 
+    // unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    // shuffle(begin(X), end(X), default_random_engine(seed));
+    // shuffle(begin(y), end(y), default_random_engine(seed));
 
 
-    for(int numBits = 2; numBits <= 32; numBits = numBits + 1)
-    {
-        std::cout << "round :: " << numBits << '\n';
-        experiment(X, y, numBits, 0.1, 30, output);
-    }
+    // std::vector<string> y_test = std::vector<string>(y.begin() + int(y.size()*0.7), y.end());
+    // std::vector<string> y_train = std::vector<string>(y.begin(), y.end() - int(y.size()*0.3));
+
+    // std::vector<string> X_test = std::vector<string>(X.begin() + int(X.size()*0.7), X.end());
+    // std::vector<string> X_train = std::vector<string>(X.begin(), X.end() - int(X.size()*0.3));
+
+    cout << experiment(X, y, numBits, confidenceThreshold, 2) << endl;
 
     return 0;
 

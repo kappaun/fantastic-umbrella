@@ -71,10 +71,10 @@ def object_function(point):
 
 
 if __name__ == '__main__':
-    # data_preparation("data/new_sts_cpp_X.csv", "data/new_sts_cpp_y.csv")
-    # lib = init()
+    data_preparation("data/imdb_cpp_X.csv", "data/imdb_cpp_y.csv")
+    lib = init()
     # print lib.object_function(28,0.1)
-    # pso(object_function, [2,0.01], [32,0.99], processes = 4, maxiter=40, swarmsize = 20)
+    pso(object_function, [2,0.01], [32,0.99], processes = 1, maxiter=40, swarmsize = 20)
     # df1 = pd.read_csv("temp_data/X_train",header=None)
     # df2 = pd.read_csv("temp_data/y_train",header=None)
     # X = np.array(df1)

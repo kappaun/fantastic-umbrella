@@ -74,7 +74,7 @@ def nb_evaluation():
         accuracy = sklearn.metrics.accuracy_score(y_test, ypred)
         accs.append(accuracy)
 
-    return accs
+    return accs, timetrain, timetest
 
 def init():
     lib = cdll.LoadLibrary('./libopt.so')
@@ -102,7 +102,7 @@ def autolabel(rects):
 if __name__ == '__main__':
     
 
-    f = open("report")
+    f = open("report2")
     res = []
     for line in f:
         vec = line.split(';')
@@ -125,6 +125,7 @@ if __name__ == '__main__':
 
     print optimum
 
+    # accnew = lib.testing(int(optimum[0]), float(optimum[1]),1)
     accnew = lib.testing(int(optimum[0]), float(optimum[1]),1)
     devnew = lib.getdev()
     traintimenew = lib.gettime()
@@ -167,7 +168,7 @@ if __name__ == '__main__':
     rects = plt.bar(range(0,4),[accnew, accclassic, accsvm, accnb], 0.5, color='gray')
     plt.tick_params(axis='both', which='major', labelsize=15)
     plt.xticks(np.arange(0,4), ('WiSARD-i', 'WiSARD', 'SVM', 'Naive Bayes'))
-    plt.title("STS Dataset", fontsize = 20)
+    plt.title("IMDB Dataset", fontsize = 20)
     plt.xlabel("Models", fontsize = 16)
     plt.ylabel("Accuracy", fontsize = 16)
     plt.ylim(0,1)
@@ -180,7 +181,7 @@ if __name__ == '__main__':
     plt.show()
 
     plt.figure(figsize=(7,5))
-    plt.title("Optimization: STS Dataset", fontsize = 20)
+    plt.title("Optimization: IMDB Dataset", fontsize = 20)
     plt.xlabel("Iteration", fontsize = 16)
     plt.ylabel("Accuracy", fontsize = 16)
     plt.tick_params(axis='both', which='major', labelsize=15)
@@ -189,3 +190,6 @@ if __name__ == '__main__':
     plt.plot(range(len(data)), [values[i] for i in xrange(0,len(values),20)], linewidth = 2, c='gray')
     plt.show()
 
+print "Model Order: ", "new | classic | svm | nb"
+print "Training Times: %f, %f, %f, %f"%(traintimenew * 10**(-9), traintimeclassic * 10**(-9), traintimesvm, traintimenb)
+print "Testing Times: %f, %f, %f, %f"%(testtimenew * 10**(-9), testtimeclassic * 10**(-9), testtimesvm, testtimenb)

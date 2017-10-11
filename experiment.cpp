@@ -173,16 +173,18 @@ extern "C" double testing(int numBitsAddr, float confidenceThreshold, int zero)
     {
         // cout << "iter: " << i << endl;
         // tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.3);
-        auto begin = std::chrono::high_resolution_clock::now();
+
 
         WiSARD * w = new WiSARD(numBitsAddr, true, confidenceThreshold, 1, true, true, ignoreZeroAddr, 10);
         
+        tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.05);
+
+        auto begin = std::chrono::high_resolution_clock::now();
+        w->fit(X_train, y_train);
+
         auto end = std::chrono::high_resolution_clock::now();
 
         meantime += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
-
-        tie(X_train, y_train, X_test, y_test) = split_train_test(X,y,0.05);
-        w->fit(X_train, y_train);
 
         auto begin2 = std::chrono::high_resolution_clock::now();
 

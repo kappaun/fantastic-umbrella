@@ -16,3 +16,12 @@ omd:
 opt:
 	g++ -c -fPIC experiment.cpp -o experiment.o -std=c++11 -lwann
 	g++ -shared -Wl,-soname,libopt.so -o libopt.so  experiment.o -std=c++11 -lwann
+
+exp:
+	g++ experiment2.cpp -o experiment -std=c++11 -lwann
+	./experiment
+	rm experiment
+
+exp2:
+	g++ -c -fPIC experiment2.cpp -o experiment.o -std=c++11 -lwann
+	g++ -shared -Wl,-soname,libopt.so -o libopt.so  experiment.o -std=c++11 -lwann

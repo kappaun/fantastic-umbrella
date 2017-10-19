@@ -102,7 +102,7 @@ def autolabel(rects):
 if __name__ == '__main__':
     
 
-    f = open("report2")
+    f = open("report")
     res = []
     for line in f:
         vec = line.split(';')
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     rects = plt.bar(range(0,4),[accnew, accclassic, accsvm, accnb], 0.5, color='gray')
     plt.tick_params(axis='both', which='major', labelsize=15)
     plt.xticks(np.arange(0,4), ('WiSARD-i', 'WiSARD', 'SVM', 'Naive Bayes'))
-    plt.title("IMDB Dataset", fontsize = 20)
+    plt.title("STS Dataset", fontsize = 20)
     plt.xlabel("Models", fontsize = 16)
     plt.ylabel("Accuracy", fontsize = 16)
     plt.ylim(0,1)
@@ -181,12 +181,14 @@ if __name__ == '__main__':
     plt.show()
 
     plt.figure(figsize=(7,5))
-    plt.title("Optimization: IMDB Dataset", fontsize = 20)
+    plt.title("Optimization: STS Dataset", fontsize = 20)
     plt.xlabel("Iteration", fontsize = 16)
     plt.ylabel("Accuracy", fontsize = 16)
     plt.tick_params(axis='both', which='major', labelsize=15)
 
     data = [values[i] for i in xrange(0,len(values),20)]
+
+    print range(len(data))
     plt.plot(range(len(data)), [values[i] for i in xrange(0,len(values),20)], linewidth = 2, c='gray')
     plt.show()
 

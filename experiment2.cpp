@@ -17,6 +17,41 @@
 using namespace wann;
 using namespace std;
 
+vector<string> ypred_global;
+vector<string> y_global;
+double time_predict = 0.0;
+double time_train = 0.0;
+
+extern "C" double get_time_train()
+{
+    return time_train;
+}
+extern "C" double get_time_predict()
+{
+    return time_predict;
+}
+
+
+extern "C" const char * get_position_ypred_global(int position)
+{
+	// cout << position << endl;
+	// cout << random << endl;
+	const char* cstr = ypred_global[position].c_str();
+	return cstr;
+}
+
+
+extern "C" const char * get_position_y_global(int position)
+{
+	const char* cstr = y_global[position].c_str();
+	return cstr;
+}
+
+extern "C" int get_pred_size()
+{
+	return y_global.size();
+}
+
 double accuracyScore(vector<string> y, vector<string> ypred)
 {
 
@@ -82,6 +117,7 @@ extern "C" double object_function(int numBitsAddr,
                                   int onlineMax,
                                   int init_size)
 {
+
     float confidence;
     float prob0;
     float prob1;
@@ -109,7 +145,8 @@ extern "C" double object_function(int numBitsAddr,
     vector<string> y_train(first_y, mid_y);
     vector<string> y_test(mid_y, last_y);
     vector<unordered_map<string, float>> ypredproba;
-    vector<string> ypred;
+    // vector<string> ypred_global;
+    y_global = y_test;
 
 
     // parameters:
@@ -133,8 +170,13 @@ extern "C" double object_function(int numBitsAddr,
         tempX.push_back(X_test[i]);
         vector<string> temp_ypred;
 
+        auto begin = std::chrono::high_resolution_clock::now();
 
         ypredproba = w->predictProba(tempX);
+
+        auto end = std::chrono::high_resolution_clock::now();
+        time_predict += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
+
         prob0 = ypredproba[0]["0"];
         prob1 = ypredproba[0]["1"];
 
@@ -148,33 +190,47 @@ extern "C" double object_function(int numBitsAddr,
             confidence = 1 - (minprob / maxprob);
         }
         // cout << confidence << endl;
+        // cout << confidence << endl;
         
         if(prob0 > prob1)
         {
-            ypred.push_back("0");
+            ypred_global.push_back("0");
             if (confidence > ssthreshold){
                 temp_ypred.push_back("0");
+                counter++;
+                auto begin = std::chrono::high_resolution_clock::now();
+
                 w->onFit(tempX, temp_ypred);
+
+                auto end = std::chrono::high_resolution_clock::now();
+                time_train += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
+
             }
 
         }
         if(prob0 < prob1)
         {
-            ypred.push_back("1");
+            ypred_global.push_back("1");
             if (confidence > ssthreshold){
                 temp_ypred.push_back("1");
+                counter++;
+                auto begin = std::chrono::high_resolution_clock::now();
+
                 w->onFit(tempX, temp_ypred);
+
+                auto end = std::chrono::high_resolution_clock::now();
+                time_train += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
             }
         }
         if(prob0 == prob1){
-            counter++;
-            ypred.push_back("0");
+            
+            ypred_global.push_back("0");
         }
         
-
     }
-    cout << "== : " << counter << endl;
-    return accuracyScore(y_test, ypred);
+    cout << "number of onlineFit " << counter << endl;
+
+    return accuracyScore(y_test, ypred_global);
 
 }
 
